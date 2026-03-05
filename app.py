@@ -96,7 +96,7 @@ if st.button("ORDER NOW (주문하기)", use_container_width=True):
 st.markdown("<br><br><br>", unsafe_allow_html=True) # 아래로 여백 생성
 with st.expander("Admin Settings"):
     password = st.text_input("관리자 암호를 입력하세요", type="password")
-    if password == "1234": # ⬅️ 원하시는 비밀번호로 수정하세요!
+    if password == "2664": # ⬅️ 원하시는 비밀번호로 수정하세요!
         if os.path.exists(DB_FILE):
             admin_df = pd.read_csv(DB_FILE)
             st.write("### 실시간 주문 현황")
