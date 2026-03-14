@@ -3,7 +3,7 @@ import pandas as pd
 from datetime import datetime
 import os
 
-# 1. 앱 페이지 설정 및 디자인 (이전 디자인 유지)
+# 1. 앱 페이지 설정 및 다크 브라운 디자인 적용
 st.set_page_config(page_title="Cafe Order System", layout="centered")
 
 st.markdown("""
@@ -11,24 +11,33 @@ st.markdown("""
     .stApp { background-color: #2D2424; }
     h1, h2, h3, p, span, label { color: #E0C097 !important; }
     .stAlert { background-color: #5C3D2E; color: #E0C097; border: none; }
+    /* 일반 메뉴 버튼 스타일 */
     .stButton>button {
-        background-color: #B85C38; color: white; border-radius: 25px;
-        border: none; height: 3.5em; font-weight: bold; width: 100%;
+        background-color: #5C3D2E; color: #E0C097; border-radius: 10px;
+        border: 1px solid #E0C097; font-weight: bold; width: 100%;
+        margin-bottom: 5px;
     }
-    div[data-baseweb="select"] > div {
-        background-color: #5C3D2E; border-radius: 10px; border: 1px solid #E0C097;
+    /* 주문하기 버튼 스타일 */
+    div[data-testid="stButton"] > button[kind="primary"] {
+        background-color: #B85C38; color: white; border-radius: 25px;
+        border: none; height: 3.5em; font-size: 1.1em; margin-top: 20px;
+    }
+    /* 선택된 메뉴 표시 박스 */
+    .selected-box {
+        background-color: #B85C38; padding: 15px; border-radius: 10px;
+        text-align: center; color: white; font-weight: bold; margin: 20px 0;
+        border: 1px solid #E0C097;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# 상단 이미지 및 제목
+# 상단 비주얼 및 제목
 st.image("https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=800&q=80", use_container_width=True)
 st.title("☕ Cafe Order System")
 
 st.info("""
-**[Notice]**
-* 1인 1일 2회 주문 가능
-* ⚠️ **베이커리류 주문 불가 / 그란데 사이즈 변경 불가**
+**[이용 안내]**
+* 1인 1일 2회 주문 가능 (베이커리 및 그란데 사이즈 불가)
 """)
 
 # 데이터 저장 설정
@@ -36,72 +45,82 @@ DB_FILE = "cafe_usage_log.csv"
 if not os.path.exists(DB_FILE):
     pd.DataFrame(columns=["날짜", "소속", "이름", "메뉴"]).to_csv(DB_FILE, index=False, encoding='utf-8-sig')
 
-# --- 데이터 정의 (생략 없이 유지) ---
+# --- 데이터 정의 ---
 member_data = {
     "생명": ["강서연", "박민형", "서석호", "서은주", "신금주", "정택연", "한정빈"],
     "카드": ["강홍석", "곽민준", "김보미", "김주희", "이상아", "정서라", "최송화"],
-    "화재": ["권슬기", "이원진", "최영철", "이호철", "배강현", "채수지"],
+    "화재": ["권슬기", "배강현", "이원진", "이호철", "채수지", "최영철"],
     "증권": ["박가훈", "심예현", "양은원", "이수진", "조성진", "최민석", "한성원"],
-    "강사": ["문현실", "이우진", "방혜진", "박도형"],
-    "운영진": ["조수연", "강병규", "김민정", "이상은", "박진용", "조윤호"],
+    "강사": ["문현실", "박도형", "방혜진", "이우진"],
+    "운영진": ["강병규", "김민정", "박진용", "이상은", "조수연", "조윤호"],
     "기타": []
 }
 
 menu_data = {
-    "커피": ["아메리카노(Hot)", "아메리카노(Ice)", "카페라떼", "바닐라라떼", "카라멜마끼아또"],
-    "음료": ["초코라떼", "그린티라떼", "고구마라떼", "밀크티"],
-    "에이드": ["레몬에이드", "자몽에이드", "청포도에이드", "블루베리에이드"],
-    "티": ["녹차", "홍차", "캐모마일", "페퍼민트", "유자차"],
-    "과일주스": ["딸기주스", "망고주스", "키위주스", "토마토주스"]
+    "커피(coffee)": ["아메리카노", "달달커피", "헤이즐넛 아메리카노", "꿀화이트 아메리카노", "콜드브루", "카페라떼", "카푸치노", "바닐라라떼", "연유카페라떼", "카페모카", "화이트초콜릿모카", "카라멜마끼아또", "아포카토", "시그니처라떼", "넛츠크림라떼", "민트모카", "흑당콜드브루", "콜드브루라떼", "연유콜드브루"],
+    "티(tea)": ["캐모마일", "히비스커스", "페퍼민트", "얼그레이", "루이보스", "아이스티", "아샷추", "아망추", "쌍화차", "배모과차", "살얼음식혜", "유자차", "자몽차", "레몬차", "생강차", "복분자뱅쇼", "로열밀크티"],
+    "에이드(ade)": ["자몽포멜로에이드", "감귤레몬에이드", "꿀복숭아에이드", "머스캣모히또 에이드", "샹그리아에이드"],
+    "논커피(non coffee)": ["흑당라떼", "미숫가루라떼", "초콜릿", "달고나라떼", "말차라떼", "민트초콜릿", "화이트초콜릿", "토피넛라떼", "고구마라떼", "딸기듬뿍라떼", "딸기초고라떼", "말차초코라떼", "버블흑당라떼"],
+    "블렌디드(blended)": ["과일플랫치노", "밀크플랫치노", "요거트플랫치노", "밀크쉐이크", "초코쿠키쉐이크", "에스프레소쉐이크", "딸기쉐이크", "말차초코쉐이크"],
+    "과일주스(fruit juice)": ["사과당근클렌즈주스", "키위케일샐러리 클렌즈주스", "딸기주스", "망고주스", "블루베리주스", "믹스주스"]
 }
 
-# --- 주문 폼 ---
-st.subheader("1. User Information")
+# --- 1. 사용자 정보 입력 ---
+st.subheader("1. 사용자 정보")
 selected_dept = st.segmented_control("소속을 선택하세요", list(member_data.keys()))
 
 name = ""
 if selected_dept:
     if selected_dept == "기타":
-        name = st.text_input("성함을 직접 입력하세요")
+        name = st.text_input("성함을 입력해 주세요")
     else:
         name = st.selectbox("성함을 선택하세요", ["선택하세요"] + sorted(member_data[selected_dept]))
 
-st.subheader("2. Menu Selection")
-selected_category = st.segmented_control("카테고리를 선택하세요", list(menu_data.keys()))
+# --- 2. 메뉴 선택 (버튼식) ---
+st.subheader("2. 메뉴 선택")
+selected_category = st.segmented_control("카테고리를 먼저 선택하세요", list(menu_data.keys()))
 
-selected_menu = ""
+if 'current_menu' not in st.session_state:
+    st.session_state.current_menu = ""
+
 if selected_category:
-    selected_menu = st.selectbox(f"{selected_category} 세부 메뉴", ["메뉴를 선택하세요"] + menu_data[selected_category])
+    st.write(f"**[{selected_category}] 세부 메뉴를 선택하세요:**")
+    cols = st.columns(3) # 3열 그리드
+    for idx, item in enumerate(menu_data[selected_category]):
+        if cols[idx % 3].button(item, key=f"m_{idx}"):
+            st.session_state.current_menu = item
+
+# 선택된 메뉴 강조 표시
+if st.session_state.current_menu:
+    st.markdown(f"<div class='selected-box'>선택된 메뉴: {st.session_state.current_menu}</div>", unsafe_allow_html=True)
 
 st.markdown("---")
 
-if st.button("ORDER NOW (주문하기)", use_container_width=True):
-    if not selected_dept or not name or name == "선택하세요" or not selected_menu or selected_menu == "메뉴를 선택하세요":
-        st.warning("정보를 모두 선택해 주세요.")
+# --- 3. 주문하기 버튼 ---
+if st.button("ORDER NOW (주문하기)", use_container_width=True, type="primary"):
+    if not selected_dept or not name or name == "선택하세요" or not st.session_state.current_menu:
+        st.warning("정보를 모두 입력/선택해 주세요.")
     else:
         df = pd.read_csv(DB_FILE, encoding='utf-8-sig')
         today = datetime.now().strftime("%Y-%m-%d")
-        user_today = df[(df['이름'] == name) & (df['날짜'] == today)]
+        count = len(df[(df['이름'] == name) & (df['날짜'] == today)])
         
-        if len(user_today) >= 2:
+        if count >= 2:
             st.error(f"⚠️ {name}님은 오늘 이미 2회 주문하셨습니다.")
         else:
-            new_data = {"날짜": today, "소속": selected_dept, "이름": name, "메뉴": selected_menu}
-            df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
+            new_row = {"날짜": today, "소속": selected_dept, "이름": name, "메뉴": st.session_state.current_menu}
+            df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
             df.to_csv(DB_FILE, index=False, encoding='utf-8-sig')
             st.balloons()
-            st.success(f"✅ 주문 완료! (오늘 {len(user_today) + 1}회째)")
+            st.success(f"✅ 주문 완료! (오늘 {count + 1}회째 이용)")
+            st.session_state.current_menu = "" # 완료 후 초기화
 
-# --- 🔒 관리자 보안 영역 ---
-st.markdown("<br><br><br>", unsafe_allow_html=True) # 아래로 여백 생성
-with st.expander("Admin Settings"):
-    password = st.text_input("관리자 암호를 입력하세요", type="password")
-    if password == "2664": # ⬅️ 원하시는 비밀번호로 수정하세요!
+# --- 🔒 관리자 페이지 (보안) ---
+st.markdown("<br><br><br>", unsafe_allow_html=True)
+with st.expander("Admin Settings (관리자 전용)"):
+    pw = st.text_input("관리자 암호", type="password")
+    if pw == "1234": # 비밀번호를 원하는 숫자로 바꾸세요
         if os.path.exists(DB_FILE):
-            admin_df = pd.read_csv(DB_FILE)
-            st.write("### 실시간 주문 현황")
-            st.dataframe(admin_df, use_container_width=True)
-            csv = admin_df.to_csv(index=False).encode('utf-8-sig')
-            st.download_button("엑셀 데이터 다운로드", csv, "cafe_log.csv", "text/csv")
-    elif password:
-        st.error("암호가 틀렸습니다.")
+            data = pd.read_csv(DB_FILE)
+            st.dataframe(data, use_container_width=True)
+            st.download_button("엑셀(CSV) 다운로드", data.to_csv(index=False).encode('utf-8-sig'), "cafe_order_list.csv")
