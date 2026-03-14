@@ -674,21 +674,40 @@ def render_admin():
         df = pd.DataFrame(orders)[["이름", "소속", "날짜", "시간", "메뉴"]]
         st.dataframe(df, use_container_width=True)
 
-        # Excel download
-        from io import BytesIO
-        buf = BytesIO()
-        with pd.ExcelWriter(buf, engine="openpyxl") as writer:
-            df.to_excel(writer, index=False, sheet_name="주문내역")
-        buf.seek(0)
-
+        # Excel download (with fallback to CSV)
+        from io import BytesIO, StringIO
         today_str = date.today().strftime("%Y%m%d")
-        st.download_button(
-            label="📥 엑셀 다운로드",
-            data=buf,
-            file_name=f"cafe_orders_{today_str}.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            use_container_width=True
-        )
+
+        excel_ok = False
+        for engine in ("openpyxl", "xlsxwriter"):
+            try:
+                buf = BytesIO()
+                with pd.ExcelWriter(buf, engine=engine) as writer:
+                    df.to_excel(writer, index=False, sheet_name="주문내역")
+                buf.seek(0)
+                st.download_button(
+                    label="📥 엑셀 다운로드 (.xlsx)",
+                    data=buf,
+                    file_name=f"cafe_orders_{today_str}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                    use_container_width=True
+                )
+                excel_ok = True
+                break
+            except Exception:
+                continue
+
+        if not excel_ok:
+            csv_buf = StringIO()
+            df.to_csv(csv_buf, index=False, encoding="utf-8-sig")
+            st.warning("⚠️ 엑셀 라이브러리를 불러올 수 없어 CSV로 다운로드됩니다.")
+            st.download_button(
+                label="📥 CSV 다운로드",
+                data=csv_buf.getvalue().encode("utf-8-sig"),
+                file_name=f"cafe_orders_{today_str}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
 
         # Filter by date
         st.markdown("---")
