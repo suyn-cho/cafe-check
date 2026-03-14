@@ -409,6 +409,15 @@ if "selected_menu" not in st.session_state:
 if "selected_category" not in st.session_state:
     st.session_state.selected_category = None
 
+MENU_CATEGORY_ICONS = {
+    "☕ 커피 (Coffee)": "☕",
+    "🍵 티 (Tea)": "🍵",
+    "🍊 에이드 (Ade)": "🍊",
+    "🥛 논커피 (Non Coffee)": "🥛",
+    "🥤 블렌디드 (Blended)": "🥤",
+    "🍓 과일주스 (Fruit Juice)": "🍓",
+}
+
 
 # ═══════════════════════════════════════════════════════════════
 # MAIN PAGE
@@ -486,12 +495,11 @@ def render_select_name():
 
 
 # ═══════════════════════════════════════════════════════════════
-# MENU SELECTION PAGE
+# MENU SELECTION PAGE  (Step A: category / Step B: items)
 # ═══════════════════════════════════════════════════════════════
 def render_select_menu():
     name = st.session_state.selected_name
     group = st.session_state.selected_group
-
     count = get_today_order_count(name)
 
     st.markdown(f"""
@@ -519,50 +527,79 @@ def render_select_menu():
             st.session_state.page = "main"
             st.session_state.selected_group = None
             st.session_state.selected_name = None
+            st.session_state.selected_category = None
             st.rerun()
         return
 
-    st.markdown('<div class="rule-badge">1일 2잔 · 베이커리 불가 · EXTRA 사이즈 불가</div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center"><div class="rule-badge">1일 2잔 · 베이커리 불가 · EXTRA 사이즈 불가</div></div>', unsafe_allow_html=True)
 
-    selected_menu = st.session_state.selected_menu
+    # ── Step A: 카테고리 선택 ──────────────────────────────────
+    if st.session_state.selected_category is None:
+        st.markdown('<div class="section-title">카테고리를 선택해 주세요</div>', unsafe_allow_html=True)
 
-    for cat, items in MENUS.items():
-        st.markdown(f'<div class="cat-label">{cat}</div>', unsafe_allow_html=True)
+        cat_list = list(MENUS.keys())
+        cat_icons = ["☕", "🍵", "🍊", "🥛", "🥤", "🍓"]
+        cat_shorts = ["커피 (Coffee)", "티 (Tea)", "에이드 (Ade)", "논커피 (Non Coffee)", "블렌디드 (Blended)", "과일주스 (Fruit Juice)"]
+
+        cols = st.columns(2)
+        for i, cat in enumerate(cat_list):
+            icon = cat_icons[i] if i < len(cat_icons) else "🍹"
+            short = cat_shorts[i] if i < len(cat_shorts) else cat
+            with cols[i % 2]:
+                if st.button(f"{icon}  {short}", key=f"cat_{i}", use_container_width=True):
+                    st.session_state.selected_category = cat
+                    st.session_state.selected_menu = None
+                    st.rerun()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("← 뒤로", key="back_to_name"):
+            st.session_state.page = "select_name"
+            st.session_state.selected_category = None
+            st.rerun()
+
+    # ── Step B: 세부 메뉴 선택 ────────────────────────────────
+    else:
+        cat = st.session_state.selected_category
+        items = MENUS[cat]
+        selected_menu = st.session_state.selected_menu
+
+        st.markdown(f'<div class="section-title">{cat} · 음료를 선택해 주세요</div>', unsafe_allow_html=True)
+
         cols = st.columns(3)
         for i, item in enumerate(items):
             with cols[i % 3]:
                 is_sel = selected_menu == item
                 label = f"✓ {item}" if is_sel else item
-                if st.button(label, key=f"menu_{cat}_{item}", use_container_width=True):
+                if st.button(label, key=f"item_{i}", use_container_width=True):
                     st.session_state.selected_menu = item
                     st.rerun()
-        st.markdown("<hr style='border:none;border-top:1px solid #f0e8e4;margin:0.5rem 0'>", unsafe_allow_html=True)
 
-    # Order confirm
-    if st.session_state.selected_menu:
-        st.markdown(f"""
-        <div style='text-align:center; padding:0.5rem'>
-            <span style='font-weight:800; color:#FF4500; font-size:1rem'>
-                선택: {st.session_state.selected_menu}
-            </span>
-        </div>
-        """, unsafe_allow_html=True)
+        if st.session_state.selected_menu:
+            st.markdown(f"""
+            <div style='text-align:center; padding:0.8rem 0 0.3rem'>
+                <span style='font-weight:800; color:#FF4500; font-size:1.05rem'>
+                    ✓ 선택: {st.session_state.selected_menu}
+                </span>
+            </div>
+            """, unsafe_allow_html=True)
 
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("← 뒤로", key="back_menu"):
-                st.session_state.page = "select_name"
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("← 카테고리", key="back_to_cat"):
+                    st.session_state.selected_category = None
+                    st.session_state.selected_menu = None
+                    st.rerun()
+            with col2:
+                if st.button("☕ 주문하기", key="confirm_order"):
+                    add_order(name, group, st.session_state.selected_menu)
+                    st.session_state.selected_category = None
+                    st.session_state.page = "success"
+                    st.rerun()
+        else:
+            if st.button("← 카테고리", key="back_to_cat2"):
+                st.session_state.selected_category = None
                 st.session_state.selected_menu = None
                 st.rerun()
-        with col2:
-            if st.button("☕ 주문하기", key="confirm_order"):
-                add_order(name, group, st.session_state.selected_menu)
-                st.session_state.page = "success"
-                st.rerun()
-    else:
-        if st.button("← 뒤로", key="back_menu2"):
-            st.session_state.page = "select_name"
-            st.rerun()
 
 
 # ═══════════════════════════════════════════════════════════════
