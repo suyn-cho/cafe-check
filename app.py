@@ -91,18 +91,24 @@ def save_orders(orders):
     with open(DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(orders, f, ensure_ascii=False, indent=2)
 
+def kst_now():
+    from datetime import timezone, timedelta
+    KST = timezone(timedelta(hours=9))
+    return datetime.now(KST)
+
 def get_today_order_count(name):
     orders = load_orders()
-    today = date.today().isoformat()
+    today = kst_now().date().isoformat()
     return sum(1 for o in orders if o["이름"] == name and o["날짜"] == today)
 
 def add_order(name, group, menu):
     orders = load_orders()
+    now = kst_now()
     orders.append({
         "이름": name,
         "소속": group,
-        "날짜": date.today().isoformat(),
-        "시간": datetime.now().strftime("%H:%M:%S"),
+        "날짜": now.date().isoformat(),
+        "시간": now.strftime("%H:%M:%S"),
         "메뉴": menu
     })
     save_orders(orders)
@@ -433,7 +439,7 @@ def render_main():
         <div class="cafe-title">Café <span>order</span></div>
     </div>
     <div style="text-align:center">
-        <div class="rule-badge">1일 1잔 &nbsp;|&nbsp; 베이커리 불가 &nbsp;|&nbsp; EXTRA 사이즈 불가</div>
+        <div class="rule-badge">1일 2잔 &nbsp;|&nbsp; 베이커리 불가 &nbsp;|&nbsp; EXTRA 사이즈 불가</div>
     </div>
     <div class="section-title">소속을 선택해 주세요</div>
     """, unsafe_allow_html=True)
@@ -552,13 +558,13 @@ def render_select_menu():
         <div class="step-dot active"></div>
         <div class="step-dot"></div>
     </div>
-    <div class="section-title">👤 {group} · {name} &nbsp;|&nbsp; 오늘 {count}/1잔</div>
+    <div class="section-title">👤 {group} · {name} &nbsp;|&nbsp; 오늘 {count}/2잔</div>
     """, unsafe_allow_html=True)
 
-    if count >= 1:
+    if count >= 2:
         st.markdown("""
         <div class="warning-box">
-            ⚠️ 오늘의 주문 횟수를 모두 사용했습니다.<br>
+            ⚠️ 오늘의 주문 횟수(2잔)를 모두 사용했습니다.<br>
             내일 다시 이용해 주세요!
         </div>
         """, unsafe_allow_html=True)
@@ -571,7 +577,7 @@ def render_select_menu():
             st.rerun()
         return
 
-    st.markdown('<div style="text-align:center"><div class="rule-badge">1일 1잔 · 베이커리 불가 · EXTRA 사이즈 불가</div></div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center"><div class="rule-badge">1일 2잔 · 베이커리 불가 · EXTRA 사이즈 불가</div></div>', unsafe_allow_html=True)
 
     # ── Step A: 카테고리 선택 ──────────────────────────────────
     if st.session_state.selected_category is None:
@@ -664,7 +670,7 @@ def render_success():
     <div class="success-box">
         ☕ 주문 완료!<br>
         <span style='font-size:1.3rem'>{name}님의 <strong>{menu}</strong></span><br>
-        <span style='font-size:0.85rem; opacity:0.85'>{group} · 오늘 {count}/1잔 사용</span>
+        <span style='font-size:0.85rem; opacity:0.85'>{group} · 오늘 {count}/2잔 사용</span>
     </div>
     """, unsafe_allow_html=True)
 
