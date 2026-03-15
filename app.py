@@ -433,7 +433,7 @@ def render_main():
         <div class="cafe-title">Café <span>order</span></div>
     </div>
     <div style="text-align:center">
-        <div class="rule-badge">1일 2잔 &nbsp;|&nbsp; 베이커리 불가 &nbsp;|&nbsp; EXTRA 사이즈 불가</div>
+        <div class="rule-badge">1일 1잔 &nbsp;|&nbsp; 베이커리 불가 &nbsp;|&nbsp; EXTRA 사이즈 불가</div>
     </div>
     <div class="section-title">소속을 선택해 주세요</div>
     """, unsafe_allow_html=True)
@@ -558,7 +558,7 @@ def render_select_menu():
     if count >= 2:
         st.markdown("""
         <div class="warning-box">
-            ⚠️ 오늘의 주문 횟수(2잔)를 모두 사용했습니다.<br>
+            ⚠️ 오늘의 주문 횟수를 모두 사용했습니다.<br>
             내일 다시 이용해 주세요!
         </div>
         """, unsafe_allow_html=True)
@@ -571,7 +571,7 @@ def render_select_menu():
             st.rerun()
         return
 
-    st.markdown('<div style="text-align:center"><div class="rule-badge">1일 2잔 · 베이커리 불가 · EXTRA 사이즈 불가</div></div>', unsafe_allow_html=True)
+    st.markdown('<div style="text-align:center"><div class="rule-badge">1일 1잔 · 베이커리 불가 · EXTRA 사이즈 불가</div></div>', unsafe_allow_html=True)
 
     # ── Step A: 카테고리 선택 ──────────────────────────────────
     if st.session_state.selected_category is None:
