@@ -552,10 +552,10 @@ def render_select_menu():
         <div class="step-dot active"></div>
         <div class="step-dot"></div>
     </div>
-    <div class="section-title">👤 {group} · {name} &nbsp;|&nbsp; 오늘 {count}/2잔</div>
+    <div class="section-title">👤 {group} · {name} &nbsp;|&nbsp; 오늘 {count}/1잔</div>
     """, unsafe_allow_html=True)
 
-    if count >= 2:
+    if count >= 1:
         st.markdown("""
         <div class="warning-box">
             ⚠️ 오늘의 주문 횟수를 모두 사용했습니다.<br>
@@ -664,7 +664,7 @@ def render_success():
     <div class="success-box">
         ☕ 주문 완료!<br>
         <span style='font-size:1.3rem'>{name}님의 <strong>{menu}</strong></span><br>
-        <span style='font-size:0.85rem; opacity:0.85'>{group} · 오늘 {count}/2잔 사용</span>
+        <span style='font-size:0.85rem; opacity:0.85'>{group} · 오늘 {count}/1잔 사용</span>
     </div>
     """, unsafe_allow_html=True)
 
