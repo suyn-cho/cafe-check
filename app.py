@@ -27,7 +27,7 @@ def kst_time_str():
 # ─── 상수 ────────────────────────────────────────────────────────
 ADMIN_PASSWORD = "2664"
 DATA_FILE = "orders.json"
-DAILY_LIMIT = 1   # 1일 최대 주문 횟수
+DAILY_LIMIT = 2   # 1일 최대 주문 횟수
 
 GROUPS = {
     "생명": {
@@ -232,7 +232,7 @@ def render_main():
     render_header()
     st.markdown("""
     <div style="text-align:center">
-        <div class="rule-badge">1일 1잔 &nbsp;|&nbsp; 베이커리 불가 &nbsp;|&nbsp; EXTRA 사이즈 불가</div>
+        <div class="rule-badge">1일 2잔 &nbsp;|&nbsp; 베이커리 불가 &nbsp;|&nbsp; EXTRA 사이즈 불가</div>
     </div>
     <div class="section-title">소속을 선택해 주세요</div>
     """, unsafe_allow_html=True)
@@ -345,7 +345,7 @@ def render_select_menu():
         return
 
     st.markdown(
-        '<div style="text-align:center"><div class="rule-badge">1일 1잔 · 베이커리 불가 · EXTRA 사이즈 불가</div></div>',
+        '<div style="text-align:center"><div class="rule-badge">1일 2잔 · 베이커리 불가 · EXTRA 사이즈 불가</div></div>',
         unsafe_allow_html=True
     )
 
