@@ -102,6 +102,7 @@ SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive",
 ]
+SHEET_ID = "1MFEWWArKM5_8lXIZNqDkb22HfeVx3OURAG--Eb7GIv4"
 
 @st.cache_resource
 def get_sheet():
@@ -109,9 +110,8 @@ def get_sheet():
     # 1) Streamlit Cloud Secrets 시도
     try:
         info = dict(st.secrets["gcp_service_account"])
-        sheet_id = str(st.secrets["SHEET_ID"])
     except Exception:
-        # 2) .streamlit/secrets.toml 직접 읽기 (여러 경로 시도)
+        # 2) .streamlit/secrets.toml 직접 읽기
         candidates = [
             os.path.join("/mount/src/cafe-check", ".streamlit", "secrets.toml"),
             os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml"),
@@ -123,12 +123,11 @@ def get_sheet():
                 cfg = toml.load(p)
                 break
         if cfg is None:
-            raise FileNotFoundError("secrets.toml not found in: " + str(candidates))
+            raise FileNotFoundError("secrets.toml not found")
         info = cfg["gcp_service_account"]
-        sheet_id = str(cfg["SHEET_ID"])
     creds  = Credentials.from_service_account_info(info, scopes=SCOPES)
     client = gspread.authorize(creds)
-    sheet  = client.open_by_key(sheet_id).sheet1
+    sheet  = client.open_by_key(SHEET_ID).sheet1
     # 헤더가 없으면 추가
     if sheet.row_count == 0 or sheet.cell(1, 1).value != "이름":
         sheet.append_row(["이름", "소속", "날짜", "시간", "메뉴"])
