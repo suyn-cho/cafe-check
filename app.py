@@ -109,13 +109,23 @@ def get_sheet():
     # 1) Streamlit Cloud Secrets 시도
     try:
         info = dict(st.secrets["gcp_service_account"])
-        sheet_id = st.secrets["SHEET_ID"]
+        sheet_id = str(st.secrets["SHEET_ID"])
     except Exception:
-        # 2) GitHub .streamlit/secrets.toml 직접 읽기
-        toml_path = os.path.join(os.path.dirname(__file__), ".streamlit", "secrets.toml")
-        cfg = toml.load(toml_path)
+        # 2) .streamlit/secrets.toml 직접 읽기 (여러 경로 시도)
+        candidates = [
+            os.path.join("/mount/src/cafe-check", ".streamlit", "secrets.toml"),
+            os.path.join(os.path.dirname(os.path.abspath(__file__)), ".streamlit", "secrets.toml"),
+            os.path.join(os.getcwd(), ".streamlit", "secrets.toml"),
+        ]
+        cfg = None
+        for p in candidates:
+            if os.path.exists(p):
+                cfg = toml.load(p)
+                break
+        if cfg is None:
+            raise FileNotFoundError("secrets.toml not found in: " + str(candidates))
         info = cfg["gcp_service_account"]
-        sheet_id = cfg["SHEET_ID"]
+        sheet_id = str(cfg["SHEET_ID"])
     creds  = Credentials.from_service_account_info(info, scopes=SCOPES)
     client = gspread.authorize(creds)
     sheet  = client.open_by_key(sheet_id).sheet1
